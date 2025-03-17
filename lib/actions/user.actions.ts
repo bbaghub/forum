@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from "next/cache";
-import User from "../models/user.models";
+import User from "../models/user.model";
 import { connectToBD } from "../mongoose"
 
 
@@ -43,5 +43,20 @@ export async function updateUser({
         console.error('MongoDB Update Error:', error);
 
         throw new Error(`Failed to create/update user: ${error.message}`)
+    }
+}
+
+export async function fetchUser(userId : string){
+    try{
+        connectToBD()
+
+        return await User
+        .findOne({id:userId})
+        // .populate({
+        //     path: 'communities',
+        //     model: Community
+        // })
+    }catch(error: any){
+        throw new Error(`Failed to fetch user: ${Error.message}`)
     }
 }

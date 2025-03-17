@@ -5,6 +5,7 @@
     username : {type : String, required: true, unique: true},
     name : {type : String, required: true},
     bio : String,
+    image: String,
     threads : [{
         type : mongoose.Schema.Types.ObjectId, 
         ref : 'Thread'
