@@ -1,6 +1,6 @@
 'use server'
 
-import { connectToBD } from "../mongoose"
+import { connectToDB } from "../mongoose"
 import Thread from "../models/thread.model"
 import User from "../models/user.model"
 import { revalidatePath } from "next/cache";
@@ -21,7 +21,7 @@ export async function createThread({
 }: Params){
 
     try {
-        connectToBD();
+        connectToDB();
        
         const createThread = await Thread.create({
            text,
@@ -44,7 +44,7 @@ export async function createThread({
 export async function fetchPosts(pageNumber = 1, pageSize = 20){
 
     try {
-            connectToBD();
+            connectToDB();
         
             //calculate the number of post to skip
             const skipAmount = (pageNumber -1) * pageSize
@@ -79,7 +79,7 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20){
 }
 
 export async function fetchThreadById(id: string){
-    connectToBD();
+    connectToDB();
 
     try {
         //Todo : populate community 
@@ -92,25 +92,62 @@ export async function fetchThreadById(id: string){
         .populate({
             path: 'children',
             populate:[
-                {
+            {
+                path: 'author',
+                model : User,
+                select : "_id id name parentId Image"
+            },
+            {
+                path : 'children',
+                model : Thread,
+                populate :{
                     path: 'author',
                     model : User,
-                    select : "_id id name parentId Image"
-                },
-                {
-                    path : 'children',
-                    model : Thread,
-                    populate :{
-                        path: 'author',
-                        model : User,
-                        select : "_id id name parentId image"
-                    }
+                    select : "_id id name parentId image"
                 }
-            ]
+            }
+        ]
         }).exec()
         return thread;
     } catch (error: any) {
         throw new Error(`Error fetching thread: ${error.message}`)
     }
 
+}
+
+export async function addCommentToThread(
+    threadId :string,
+    commentText: string,
+    userId: string,
+    path: string,
+){
+connectToDB();
+
+try {
+    const originalThread = await Thread.findById(threadId)
+    if(!originalThread){
+        throw new Error('Throw not found')
+    }
+        //create a new thread with the comment text
+        const commentThread = new Thread({
+            text: commentText,
+            author: userId,
+            parentId: threadId
+        })
+
+        //save the new thread
+        const savedCommentThread = await commentThread.save();
+
+        //update the original thread to include the new comment
+        originalThread.children.push(savedCommentThread._id);
+
+        // save the original thread
+        await originalThread.save();
+
+        revalidatePath(path);
+    
+} catch (error:any) {
+    console.error("comment error:", error)
+    throw new Error(`Error adding comment to thread : ${error.message}`)
+}
 }

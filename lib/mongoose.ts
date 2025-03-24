@@ -22,7 +22,7 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URL;
 
-export const connectToBD = async () => {
+export const connectToDB = async () => {
     mongoose.set('strictQuery', true);
 
     if (!MONGODB_URI) {
