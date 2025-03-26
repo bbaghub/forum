@@ -7,7 +7,7 @@ import { fetchUser,  fetchUsers } from "@/lib/actions/user.actions";
 import UserCard from '@/components/cards/UserCard'
 
 async function page() {
-    const user = await currentUser
+    const user = await currentUser();
     if(!user) return null
 
     const userInfo = await fetchUser(user.id)

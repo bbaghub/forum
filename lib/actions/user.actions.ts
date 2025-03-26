@@ -17,8 +17,8 @@ interface Params{
 }
 
 export async function updateUser({
+  username,
     userId,
-    username,
     name,
     bio,
     image,
